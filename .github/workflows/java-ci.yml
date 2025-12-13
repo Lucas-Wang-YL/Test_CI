@@ -68,7 +68,7 @@ jobs:
 
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
-      if: github.repository != '' && secrets.SONAR_TOKEN != ''
+      if: secrets.SONAR_TOKEN != ''
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

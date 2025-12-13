@@ -23,6 +23,9 @@ jobs:
     strategy:
       matrix:
         java-version: ['17', '21']
+    defaults:
+      run:
+        working-directory: java
 
     steps:
     - uses: actions/checkout@v3
@@ -33,22 +36,26 @@ jobs:
         java-version: ${{ matrix.java-version }}
         distribution: 'temurin'
         cache: 'gradle'
+        cache-dependency-path: 'java/build.gradle.kts'
 
     - name: Grant execute permission for gradlew
-      run: chmod +x java/gradlew
+      run: chmod +x gradlew
 
     - name: Run tests with Gradle
-      run: cd java && ./gradlew test --info
+      run: ./gradlew test --info
 
     - name: Generate test reports
       if: always()
-      run: cd java && ./gradlew jacocoTestReport
+      run: ./gradlew jacocoTestReport
 
   code-quality:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       security-events: write
+    defaults:
+      run:
+        working-directory: java
 
     steps:
     - uses: actions/checkout@v3
@@ -59,25 +66,22 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: 'gradle'
+        cache-dependency-path: 'java/build.gradle.kts'
 
     - name: Grant execute permission for gradlew
-      run: chmod +x java/gradlew
+      run: chmod +x gradlew
 
     - name: Run Checkstyle
-      run: cd java && ./gradlew checkstyleMain || true
-
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@master
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-      continue-on-error: true
+      run: ./gradlew checkstyleMain || true
 
   build:
     needs: test
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    defaults:
+      run:
+        working-directory: java
 
     steps:
     - uses: actions/checkout@v3
@@ -88,17 +92,18 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: 'gradle'
+        cache-dependency-path: 'java/build.gradle.kts'
 
     - name: Grant execute permission for gradlew
-      run: chmod +x java/gradlew
+      run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: cd java && ./gradlew build -x test
+      run: ./gradlew build -x test
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       if: always()
       with:
         name: java-build
-        path: java/build/
+        path: build/
         if-no-files-found: ignore

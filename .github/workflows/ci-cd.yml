@@ -1,0 +1,106 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # 每天UTC时间00:00运行
+    - cron: '0 0 * * *'
+
+jobs:
+  python-lint:
+    runs-on: ubuntu-latest
+    name: Python Lint & Format Check
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+      
+      - name: Install lint tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install black flake8 isort pylint
+      
+      - name: Check Python files exist
+        id: check_files
+        run: |
+          if find . -name "*.py" -type f | grep -q . 2>/dev/null; then
+            echo "has_python=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_python=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Run Black
+        if: steps.check_files.outputs.has_python == 'true'
+        run: black --check . || true
+      
+      - name: Run isort
+        if: steps.check_files.outputs.has_python == 'true'
+        run: isort --check-only . || true
+
+  java-lint:
+    runs-on: ubuntu-latest
+    name: Java Lint & Checkstyle
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Check Java files exist
+        id: check_files
+        run: |
+          if find . -name "*.java" -type f | grep -q . 2>/dev/null; then
+            echo "has_java=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_java=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Set up JDK 17
+        if: steps.check_files.outputs.has_java == 'true'
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      
+      - name: Run Checkstyle
+        if: steps.check_files.outputs.has_java == 'true'
+        run: |
+          if [ -f pom.xml ]; then
+            mvn checkstyle:check || true
+          fi
+
+  security-scan:
+    runs-on: ubuntu-latest
+    name: Security Scanning
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+      
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  notify:
+    needs: [python-lint, java-lint, security-scan]
+    runs-on: ubuntu-latest
+    name: Notify Status
+    if: always()
+    steps:
+      - name: Check workflow status
+        run: |
+          echo "CI/CD Pipeline completed"
+          echo "Python Lint: ${{ needs.python-lint.result }}"
+          echo "Java Lint: ${{ needs.java-lint.result }}"
+          echo "Security Scan: ${{ needs.security-scan.result }}"

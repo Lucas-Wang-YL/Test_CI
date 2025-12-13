@@ -139,6 +139,16 @@ jobs:
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Using version: $VERSION"
 
+    - name: Check if tag already exists
+      run: |
+        git fetch --tags
+        if git tag -l | grep -q "^python-v${{ steps.version.outputs.version }}$"; then
+          echo "❌ Error: Tag python-v${{ steps.version.outputs.version }} already exists!"
+          echo "Please use manual mode with a different version number."
+          exit 1
+        fi
+        echo "✅ Version ${{ steps.version.outputs.version }} is available"
+
     - name: Set up Python
       uses: actions/setup-python@v4
       with:

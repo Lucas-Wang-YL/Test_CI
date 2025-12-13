@@ -34,6 +34,8 @@ jobs:
     - name: Install dependencies
       run: |
         gem install bundler -v '~> 2.2.0'
+        bundle lock --add-platform ruby
+        bundle lock --add-platform x86_64-linux
         bundle install --jobs 4 --retry 3
     
     - name: Run RSpec tests
@@ -69,6 +71,8 @@ jobs:
     - name: Install dependencies
       run: |
         gem install bundler -v '~> 2.2.0'
+        bundle lock --add-platform ruby
+        bundle lock --add-platform x86_64-linux
         bundle install --jobs 4 --retry 3
     
     - name: Run RuboCop
@@ -93,6 +97,8 @@ jobs:
     - name: Install dependencies
       run: |
         gem install bundler -v '~> 2.2.0'
+        bundle lock --add-platform ruby
+        bundle lock --add-platform x86_64-linux
         bundle install --jobs 4 --retry 3
     
     - name: Generate patterns

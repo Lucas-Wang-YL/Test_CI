@@ -14,6 +14,13 @@ on:
       - '**.java'
       - 'build.gradle.kts'
       - 'gradle.properties'
+  workflow_dispatch:
+    inputs:
+      run_package:
+        description: 'Run package job'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   test:
@@ -69,7 +76,8 @@ jobs:
     - name: Run Checkstyle
       run: ./gradlew checkstyleMain || true
 
-  build:
+  package:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_package }}
     needs: test
     runs-on: ubuntu-latest
     permissions:

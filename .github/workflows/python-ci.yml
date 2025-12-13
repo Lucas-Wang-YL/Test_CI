@@ -18,6 +18,13 @@ on:
       - 'setup.py'
       - 'setup.cfg'
       - 'pyproject.toml'
+  workflow_dispatch:
+    inputs:
+      run_package:
+        description: 'Run package job'
+        required: false
+        default: true
+        type: boolean
 
 jobs:
   test:
@@ -57,7 +64,8 @@ jobs:
         file: ./coverage.xml
         fail_ci_if_error: false
 
-  build:
+  package:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_package }}
     needs: test
     runs-on: ubuntu-latest
     permissions:

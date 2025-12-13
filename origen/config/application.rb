@@ -21,7 +21,7 @@ module TestProgram
     end
 
     def test_engineer
-      ENV['USER'] || 'test_engineer'
+      ENV.fetch('USER', nil) || 'test_engineer'
     end
   end
 end

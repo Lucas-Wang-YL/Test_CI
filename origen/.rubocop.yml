@@ -1,5 +1,6 @@
 AllCops:
-  TargetRubyVersion: 2.6
+  TargetRubyVersion: 2.7
+  NewCops: enable
   Exclude:
     - 'output/**/*'
     - 'vendor/**/*'
@@ -10,6 +11,10 @@ Style/StringLiterals:
   EnforcedStyle: single_quotes
 
 Style/Documentation:
+  Enabled: false
+
+# Allow global variables (Origen framework convention for $dut)
+Style/GlobalVars:
   Enabled: false
 
 Metrics/LineLength:

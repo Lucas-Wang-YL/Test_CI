@@ -32,11 +32,7 @@ jobs:
         working-directory: origen
     
     - name: Install dependencies
-      run: |
-        gem install bundler -v '~> 2.2.0'
-        bundle lock --add-platform ruby
-        bundle lock --add-platform x86_64-linux
-        bundle install --jobs 4 --retry 3
+      run: bundle install --jobs 4 --retry 3
     
     - name: Run RSpec tests
       run: bundle exec rspec --format documentation
@@ -69,11 +65,7 @@ jobs:
         working-directory: origen
     
     - name: Install dependencies
-      run: |
-        gem install bundler -v '~> 2.2.0'
-        bundle lock --add-platform ruby
-        bundle lock --add-platform x86_64-linux
-        bundle install --jobs 4 --retry 3
+      run: bundle install --jobs 4 --retry 3
     
     - name: Run RuboCop
       run: bundle exec rubocop --format simple
@@ -95,11 +87,7 @@ jobs:
         working-directory: origen
     
     - name: Install dependencies
-      run: |
-        gem install bundler -v '~> 2.2.0'
-        bundle lock --add-platform ruby
-        bundle lock --add-platform x86_64-linux
-        bundle install --jobs 4 --retry 3
+      run: bundle install --jobs 4 --retry 3
     
     - name: Generate patterns
       run: |

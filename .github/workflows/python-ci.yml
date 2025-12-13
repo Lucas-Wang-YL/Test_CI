@@ -104,13 +104,11 @@ jobs:
         python -c "from stdf import STDFParser; print('Build verification passed')"
 
   package:
-    if: ${{ (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) || (github.event_name == 'workflow_dispatch' && inputs.run_package) }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_package }}
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-    outputs:
-      version: ${{ steps.version.outputs.version }}
+      contents: write
 
     steps:
     - uses: actions/checkout@v4
@@ -169,19 +167,9 @@ jobs:
         path: python/dist/
         if-no-files-found: warn
 
-  tag:
-    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
-    needs: package
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Create and push tag
+    - name: Create and push Git tag
       env:
-        VERSION: ${{ needs.package.outputs.version }}
+        VERSION: ${{ steps.version.outputs.version }}
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"

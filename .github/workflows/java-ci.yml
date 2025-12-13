@@ -2,7 +2,9 @@ name: Java CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: 
+      - main
+      - 'release/**'
     paths:
       - '**.java'
       - 'build.gradle.kts'
@@ -115,11 +117,13 @@ jobs:
       run: ./gradlew build -x test
 
   package:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_package }}
+    if: ${{ (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) || (github.event_name == 'workflow_dispatch' && inputs.run_package) }}
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     defaults:
       run:
         working-directory: java
@@ -190,3 +194,23 @@ jobs:
           java/build/distributions/*.zip
           java/build/distributions/*.tar
         if-no-files-found: ignore
+
+  tag:
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create and push tag
+      env:
+        VERSION: ${{ needs.package.outputs.version }}
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag -a "java-v${VERSION}" -m "Release Java Calculator version ${VERSION}"
+        git push origin "java-v${VERSION}"
+        echo "✅ Created and pushed tag: java-v${VERSION}"

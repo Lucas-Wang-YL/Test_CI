@@ -2,7 +2,9 @@ name: Python CI
 
 on:
   push:
-    branches: [ main, develop ]
+    branches:
+      - main
+      - 'release/**'
     paths:
       - '**.py'
       - 'requirements.txt'
@@ -102,11 +104,13 @@ jobs:
         python -c "from stdf import STDFParser; print('Build verification passed')"
 
   package:
-    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_package }}
+    if: ${{ (github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/'))) || (github.event_name == 'workflow_dispatch' && inputs.run_package) }}
     needs: build
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -164,3 +168,23 @@ jobs:
         name: python-stdf-dist-v${{ steps.version.outputs.version }}
         path: python/dist/
         if-no-files-found: warn
+
+  tag:
+    if: ${{ github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')) }}
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Create and push tag
+      env:
+        VERSION: ${{ needs.package.outputs.version }}
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+        git tag -a "python-v${VERSION}" -m "Release Python STDF Parser version ${VERSION}"
+        git push origin "python-v${VERSION}"
+        echo "✅ Created and pushed tag: python-v${VERSION}"

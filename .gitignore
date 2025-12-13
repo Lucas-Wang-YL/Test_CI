@@ -6,9 +6,11 @@ dist/
 *.jar
 *.war
 
+# Exception: Include Gradle wrapper JAR
+!gradle/wrapper/gradle-wrapper.jar
+
 # Gradle
 .gradle/
-gradle/wrapper/gradle-wrapper.jar
 
 # IDE
 .idea/

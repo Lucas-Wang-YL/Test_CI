@@ -13,6 +13,8 @@ jobs:
   python-lint:
     runs-on: ubuntu-latest
     name: Python Lint & Format Check
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v3
       
@@ -46,6 +48,8 @@ jobs:
   java-lint:
     runs-on: ubuntu-latest
     name: Java Lint & Checkstyle
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v3
       
@@ -75,6 +79,9 @@ jobs:
   security-scan:
     runs-on: ubuntu-latest
     name: Security Scanning
+    permissions:
+      contents: read
+      security-events: write
     steps:
       - uses: actions/checkout@v3
       
@@ -87,10 +94,11 @@ jobs:
           output: 'trivy-results.sarif'
       
       - name: Upload Trivy results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
+          category: 'trivy-scan'
 
   notify:
     needs: [python-lint, java-lint, security-scan]

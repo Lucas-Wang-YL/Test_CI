@@ -25,6 +25,19 @@ on:
         required: false
         default: true
         type: boolean
+      version_mode:
+        description: 'Version mode'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - manual
+      manual_version:
+        description: 'Manual version (e.g., 1.2.3) - only used if mode is manual'
+        required: false
+        default: ''
+        type: string
 
 jobs:
   test:
@@ -89,7 +102,7 @@ jobs:
         python -c "from stdf import STDFParser; print('Build verification passed')"
 
   package:
-    if: ${{ github.event_name != 'workflow_dispatch' || inputs.run_package }}
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_package }}
     needs: build
     runs-on: ubuntu-latest
     permissions:
@@ -97,6 +110,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Determine version
+      id: version
+      run: |
+        if [ "${{ inputs.version_mode }}" = "manual" ] && [ -n "${{ inputs.manual_version }}" ]; then
+          VERSION="${{ inputs.manual_version }}"
+        else
+          # Read current version from pyproject.toml
+          CURRENT_VERSION=$(grep '^version = ' python/pyproject.toml | sed 's/version = "\(.*\)"/\1/')
+          # Auto-increment patch version
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+          PATCH=$((PATCH + 1))
+          VERSION="${MAJOR}.${MINOR}.${PATCH}"
+        fi
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "Using version: $VERSION"
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -106,6 +135,15 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip setuptools wheel build
+    
+    - name: Update version in pyproject.toml and setup.py
+      run: |
+        cd python
+        sed -i 's/^version = .*/version = "${{ steps.version.outputs.version }}"/' pyproject.toml
+        sed -i 's/version=".*"/version="${{ steps.version.outputs.version }}"/' setup.py
+        echo "Updated versions:"
+        grep "^version = " pyproject.toml
+        grep 'version="' setup.py
 
     - name: Build distribution packages
       run: |
@@ -123,6 +161,6 @@ jobs:
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: python-stdf-dist
+        name: python-stdf-dist-v${{ steps.version.outputs.version }}
         path: python/dist/
         if-no-files-found: warn

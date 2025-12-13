@@ -33,7 +33,6 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: 'gradle'
-        cache-dependency-path: 'java/build.gradle.kts'
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -63,7 +62,6 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: 'gradle'
-        cache-dependency-path: 'java/build.gradle.kts'
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
@@ -89,7 +87,6 @@ jobs:
         java-version: '21'
         distribution: 'temurin'
         cache: 'gradle'
-        cache-dependency-path: 'java/build.gradle.kts'
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew

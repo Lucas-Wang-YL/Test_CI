@@ -94,10 +94,31 @@ jobs:
     - name: Build with Gradle
       run: ./gradlew build -x test
 
-    - name: Upload artifacts
+    - name: Package JAR
+      run: ./gradlew jar
+
+    - name: Create distribution
+      run: ./gradlew distZip distTar
+
+    - name: Verify build artifacts
+      run: |
+        ls -lh build/libs/
+        ls -lh build/distributions/ || true
+
+    - name: Upload JAR artifact
       uses: actions/upload-artifact@v4
       if: always()
       with:
-        name: java-build
-        path: java/build/
+        name: calculator-jar
+        path: java/build/libs/*.jar
+        if-no-files-found: warn
+
+    - name: Upload distribution artifact
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: calculator-distributions
+        path: |
+          java/build/distributions/*.zip
+          java/build/distributions/*.tar
         if-no-files-found: ignore

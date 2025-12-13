@@ -1,0 +1,7 @@
+include stdf/README.md
+include stdf/requirements.txt
+include LICENSE
+recursive-include stdf *.py
+recursive-exclude stdf/__pycache__ *
+recursive-exclude stdf *.pyc
+recursive-exclude stdf *.pyo

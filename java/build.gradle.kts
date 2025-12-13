@@ -1,11 +1,16 @@
 plugins {
     java
+    application
     // checkstyle   // 禁用，直到配置文件准备好
     jacoco
 }
 
 group = "com.example"
 version = "1.0.0"
+
+application {
+    mainClass.set("Calculator")
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -37,6 +42,34 @@ tasks.jacocoTestReport {
         xml.required.set(true)
         csv.required.set(false)
         html.required.set(true)
+    }
+}
+
+// JAR packaging configuration
+tasks.jar {
+    manifest {
+        attributes(
+            "Implementation-Title" to project.name,
+            "Implementation-Version" to project.version,
+            "Main-Class" to "Calculator"
+        )
+    }
+    archiveBaseName.set("calculator")
+    archiveVersion.set(project.version.toString())
+    
+    // Create fat JAR with dependencies
+    from(configurations.runtimeClasspath.get().map { if (it.isDirectory) it else zipTree(it) })
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+// Distribution packaging
+distributions {
+    main {
+        contents {
+            from("src/main/resources") {
+                into("config")
+            }
+        }
     }
 }
 

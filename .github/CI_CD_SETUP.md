@@ -15,7 +15,7 @@
 - 推送到 `main` 或 `develop` 分支（涉及 Python 文件）
 - 创建 Pull Request 到 `main` 或 `develop` 分支（涉及 Python 文件）
 
-**支持的 Python 版本：** 3.8, 3.9, 3.10, 3.11
+**支持的 Python 版本：** 3.12
 
 ### 2. **java-ci.yml** - Java CI/CD 工作流
 自动运行以下任务：
@@ -28,7 +28,7 @@
 - 推送到 `main` 或 `develop` 分支（涉及 Java 文件）
 - 创建 Pull Request 到 `main` 或 `develop` 分支（涉及 Java 文件）
 
-**支持的 JDK 版本：** 11, 17, 21
+**支持的 JDK 版本：** 21
 
 ### 3. **ci-cd.yml** - 综合CI/CD管道
 整合的工作流，包括：
@@ -64,6 +64,7 @@ setup(
     name='your-project-name',
     version='0.1.0',
     packages=find_packages(),
+    python_requires='>=3.12',
     install_requires=[
         'requests>=2.28.0',
     ],
@@ -96,7 +97,7 @@ setup(
 </project>
 ```
 
-**Gradle 项目** - 必须包含 `build.gradle` 或 `build.gradle.kts` 以及 `gradlew`
+**Gradle 项目** - 必须包含 `build.gradle` 或 `build.gradle.kts`、`gradlew` 以及 `gradle/wrapper/gradle-wrapper.jar`（注意：需要提交到 Git）
 ```gradle
 plugins {
     id 'java'
@@ -185,5 +186,10 @@ test {
 ---
 
 **最后更新：** 2025-12-13
+**配置状态：** 
+- ✅ Java CI 使用 JDK 21
+- ✅ Python CI 使用 Python 3.12
+- ✅ 所有 Actions 已升级到最新版本 (upload-artifact v4)
+- ✅ Gradle wrapper 已正确配置
 
 需要帮助？查看 [GitHub Actions 故障排除指南](https://docs.github.com/en/actions/monitoring-and-troubleshooting-workflows)

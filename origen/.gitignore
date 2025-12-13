@@ -1,0 +1,32 @@
+# Origen output files
+output/
+tmp/
+.origen/
+
+# Ruby
+*.gem
+*.rbc
+.bundle
+.config
+coverage/
+InstalledFiles
+lib/bundler/man
+pkg
+rdoc
+spec/reports
+test/tmp
+test/version_tmp
+vendor/bundle
+
+# RSpec
+.rspec_status
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db

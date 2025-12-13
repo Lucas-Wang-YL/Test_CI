@@ -1,0 +1,13 @@
+source 'https://rubygems.org'
+
+ruby '>= 2.6.0', '< 3.0'
+
+# Origen semiconductor test framework
+gem 'origen', '~> 0.60.0'
+gem 'origen_testers', '~> 0.52.0'
+
+# Development and testing
+group :development, :test do
+  gem 'rspec', '~> 3.10'
+  gem 'rubocop', '~> 1.12', require: false
+end

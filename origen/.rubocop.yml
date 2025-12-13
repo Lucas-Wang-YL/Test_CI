@@ -1,0 +1,24 @@
+AllCops:
+  TargetRubyVersion: 2.6
+  Exclude:
+    - 'output/**/*'
+    - 'vendor/**/*'
+    - 'tmp/**/*'
+
+# Style preferences
+Style/StringLiterals:
+  EnforcedStyle: single_quotes
+
+Style/Documentation:
+  Enabled: false
+
+Metrics/LineLength:
+  Max: 120
+
+Metrics/MethodLength:
+  Max: 20
+
+Metrics/BlockLength:
+  Exclude:
+    - 'spec/**/*'
+    - 'pattern/**/*'

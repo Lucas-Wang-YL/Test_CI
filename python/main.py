@@ -1,5 +1,5 @@
 """
-Simple Python module for CI/CD testing
+Simple Python module for CI/CD testing.
 """
 
 

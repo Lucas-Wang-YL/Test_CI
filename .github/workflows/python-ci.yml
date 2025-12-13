@@ -108,7 +108,9 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
 
     steps:
     - uses: actions/checkout@v4
@@ -167,9 +169,19 @@ jobs:
         path: python/dist/
         if-no-files-found: warn
 
+  tag:
+    if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_package }}
+    needs: package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+    - uses: actions/checkout@v4
+
     - name: Create and push Git tag
       env:
-        VERSION: ${{ steps.version.outputs.version }}
+        VERSION: ${{ needs.package.outputs.version }}
       run: |
         git config user.name "github-actions[bot]"
         git config user.email "github-actions[bot]@users.noreply.github.com"

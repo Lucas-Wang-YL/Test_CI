@@ -35,14 +35,14 @@ jobs:
         cache: 'gradle'
 
     - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      run: chmod +x java/gradlew
 
     - name: Run tests with Gradle
-      run: ./gradlew test --info
+      run: cd java && ./gradlew test --info
 
     - name: Generate test reports
       if: always()
-      run: ./gradlew jacocoTestReport
+      run: cd java && ./gradlew jacocoTestReport
 
   code-quality:
     runs-on: ubuntu-latest
@@ -61,10 +61,10 @@ jobs:
         cache: 'gradle'
 
     - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      run: chmod +x java/gradlew
 
     - name: Run Checkstyle
-      run: ./gradlew checkstyleMain || true
+      run: cd java && ./gradlew checkstyleMain || true
 
     - name: SonarCloud Scan
       uses: SonarSource/sonarcloud-github-action@master
@@ -90,15 +90,15 @@ jobs:
         cache: 'gradle'
 
     - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+      run: chmod +x java/gradlew
 
     - name: Build with Gradle
-      run: ./gradlew build -x test
+      run: cd java && ./gradlew build -x test
 
     - name: Upload artifacts
       uses: actions/upload-artifact@v3
       if: always()
       with:
         name: java-build
-        path: build/
+        path: java/build/
         if-no-files-found: ignore

@@ -137,12 +137,20 @@ jobs:
         if [ "${{ inputs.version_mode }}" = "manual" ] && [ -n "${{ inputs.manual_version }}" ]; then
           VERSION="${{ inputs.manual_version }}"
         else
-          # Read current version from build.gradle.kts
-          CURRENT_VERSION=$(grep 'version = ' ../java/build.gradle.kts | sed 's/version = "\(.*\)"/\1/')
-          # Auto-increment patch version
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
-          PATCH=$((PATCH + 1))
-          VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          # Fetch all tags
+          git fetch --tags
+          # Get latest java-v* tag
+          LATEST_TAG=$(git tag -l "java-v*" | sort -V | tail -n 1)
+          if [ -z "$LATEST_TAG" ]; then
+            # No tags exist, start from 1.0.0
+            VERSION="1.0.0"
+          else
+            # Extract version number and increment patch
+            CURRENT_VERSION=${LATEST_TAG#java-v}
+            IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+            PATCH=$((PATCH + 1))
+            VERSION="${MAJOR}.${MINOR}.${PATCH}"
+          fi
         fi
         echo "version=$VERSION" >> $GITHUB_OUTPUT
         echo "Using version: $VERSION"

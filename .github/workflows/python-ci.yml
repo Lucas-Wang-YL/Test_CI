@@ -118,11 +118,18 @@ jobs:
     - name: Determine version
       id: version
       run: |
+        # Fetch all tags once
+        git fetch --tags
+        
         if [ "${{ inputs.version_mode }}" = "manual" ] && [ -n "${{ inputs.manual_version }}" ]; then
           VERSION="${{ inputs.manual_version }}"
+          # Validate version format (x.y.z)
+          if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Error: Invalid version format '$VERSION'"
+            echo "Expected format: MAJOR.MINOR.PATCH (e.g., 1.2.3)"
+            exit 1
+          fi
         else
-          # Fetch all tags
-          git fetch --tags
           # Get latest python-v* tag
           LATEST_TAG=$(git tag -l "python-v*" | sort -V | tail -n 1)
           if [ -z "$LATEST_TAG" ]; then
@@ -136,18 +143,16 @@ jobs:
             VERSION="${MAJOR}.${MINOR}.${PATCH}"
           fi
         fi
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "Using version: $VERSION"
-
-    - name: Check if tag already exists
-      run: |
-        git fetch --tags
-        if git tag -l | grep -q "^python-v${{ steps.version.outputs.version }}$"; then
-          echo "❌ Error: Tag python-v${{ steps.version.outputs.version }} already exists!"
+        
+        # Check if tag already exists
+        if git tag -l | grep -q "^python-v${VERSION}$"; then
+          echo "❌ Error: Tag python-v${VERSION} already exists!"
           echo "Please use manual mode with a different version number."
           exit 1
         fi
-        echo "✅ Version ${{ steps.version.outputs.version }} is available"
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "✅ Version $VERSION is available"
 
     - name: Set up Python
       uses: actions/setup-python@v4
@@ -187,6 +192,16 @@ jobs:
         path: python/dist/
         if-no-files-found: warn
 
+    - name: Generate summary
+      if: always()
+      run: |
+        echo "## 📦 Python Package Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version Mode**: \`${{ inputs.version_mode }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Artifacts**: python-stdf-dist-v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Next Step**: Tag \`python-v${{ steps.version.outputs.version }}\` will be created" >> $GITHUB_STEP_SUMMARY
+
   tag:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_package }}
     needs: package
@@ -206,3 +221,13 @@ jobs:
         git tag -a "python-v${VERSION}" -m "Release Python STDF Parser version ${VERSION}"
         git push origin "python-v${VERSION}"
         echo "✅ Created and pushed tag: python-v${VERSION}"
+
+    - name: Generate summary
+      env:
+        VERSION: ${{ needs.package.outputs.version }}
+      run: |
+        echo "## 🏷️ Python Tag Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Successfully created tag**: \`python-v${VERSION}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "View tag: [python-v${VERSION}](https://github.com/${{ github.repository }}/releases/tag/python-v${VERSION})" >> $GITHUB_STEP_SUMMARY

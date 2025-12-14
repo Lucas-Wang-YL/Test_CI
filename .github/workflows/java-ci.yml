@@ -134,11 +134,18 @@ jobs:
     - name: Determine version
       id: version
       run: |
+        # Fetch all tags once
+        git fetch --tags
+        
         if [ "${{ inputs.version_mode }}" = "manual" ] && [ -n "${{ inputs.manual_version }}" ]; then
           VERSION="${{ inputs.manual_version }}"
+          # Validate version format (x.y.z)
+          if ! [[ $VERSION =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "❌ Error: Invalid version format '$VERSION'"
+            echo "Expected format: MAJOR.MINOR.PATCH (e.g., 1.2.3)"
+            exit 1
+          fi
         else
-          # Fetch all tags
-          git fetch --tags
           # Get latest java-v* tag
           LATEST_TAG=$(git tag -l "java-v*" | sort -V | tail -n 1)
           if [ -z "$LATEST_TAG" ]; then
@@ -152,19 +159,16 @@ jobs:
             VERSION="${MAJOR}.${MINOR}.${PATCH}"
           fi
         fi
-        echo "version=$VERSION" >> $GITHUB_OUTPUT
-        echo "Using version: $VERSION"
-      working-directory: .
-
-    - name: Check if tag already exists
-      run: |
-        git fetch --tags
-        if git tag -l | grep -q "^java-v${{ steps.version.outputs.version }}$"; then
-          echo "❌ Error: Tag java-v${{ steps.version.outputs.version }} already exists!"
+        
+        # Check if tag already exists
+        if git tag -l | grep -q "^java-v${VERSION}$"; then
+          echo "❌ Error: Tag java-v${VERSION} already exists!"
           echo "Please use manual mode with a different version number."
           exit 1
         fi
-        echo "✅ Version ${{ steps.version.outputs.version }} is available"
+        
+        echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "✅ Version $VERSION is available"
       working-directory: .
 
     - name: Set up JDK 21
@@ -214,6 +218,17 @@ jobs:
           java/build/distributions/*.tar
         if-no-files-found: ignore
 
+    - name: Generate summary
+      if: always()
+      run: |
+        echo "## 📦 Java Package Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version**: \`${{ steps.version.outputs.version }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Version Mode**: \`${{ inputs.version_mode }}\`" >> $GITHUB_STEP_SUMMARY
+        echo "- **Artifacts**: calculator-jar-v${{ steps.version.outputs.version }}, calculator-distributions-v${{ steps.version.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+        echo "- **Next Step**: Tag \`java-v${{ steps.version.outputs.version }}\` will be created" >> $GITHUB_STEP_SUMMARY
+      working-directory: .
+
   tag:
     if: ${{ github.event_name == 'workflow_dispatch' && inputs.run_package }}
     needs: package
@@ -233,3 +248,13 @@ jobs:
         git tag -a "java-v${VERSION}" -m "Release Java Calculator version ${VERSION}"
         git push origin "java-v${VERSION}"
         echo "✅ Created and pushed tag: java-v${VERSION}"
+
+    - name: Generate summary
+      env:
+        VERSION: ${{ needs.package.outputs.version }}
+      run: |
+        echo "## 🏷️ Java Tag Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "✅ **Successfully created tag**: \`java-v${VERSION}\`" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "View tag: [java-v${VERSION}](https://github.com/${{ github.repository }}/releases/tag/java-v${VERSION})" >> $GITHUB_STEP_SUMMARY

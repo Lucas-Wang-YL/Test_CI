@@ -27,6 +27,7 @@ def sample_stdf_file():
 
 def test_stdf_parser_initialization():
     """Test STDFParser initialization"""
+    print("Testing STDFParser initialization")
     parser = STDFParser('test.stdf')
     assert parser.filepath == 'test.stdf'
     assert len(parser.records) == 0

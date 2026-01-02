@@ -2,28 +2,28 @@
  * Simple Calculator class for CI/CD testing
  */
 public class Calculator {
-    
+
     /**
      * Add two numbers
      */
     public static int add(int a, int b) {
         return a + b;
     }
-    
+
     /**
      * Subtract two numbers
      */
     public static int subtract(int a, int b) {
         return a - b;
     }
-    
+
     /**
      * Multiply two numbers
      */
     public static int multiply(int a, int b) {
         return a * b;
     }
-    
+
     /**
      * Divide two numbers
      */
@@ -33,7 +33,7 @@ public class Calculator {
         }
         return (double) a / b;
     }
-    
+
     /**
      * Calculate fibonacci number at position n
      */
@@ -41,9 +41,11 @@ public class Calculator {
         if (n < 0) {
             throw new IllegalArgumentException("n must be non-negative");
         }
-        if (n == 0) return 0;
-        if (n == 1) return 1;
-        
+        if (n == 0)
+            return 0;
+        if (n == 1)
+            return 1;
+
         long a = 0, b = 1;
         for (int i = 2; i <= n; i++) {
             long temp = a + b;
@@ -52,18 +54,19 @@ public class Calculator {
         }
         return b;
     }
-    
+
     /**
      * Simple greeting function
      */
     public static String greet(String name) {
         return "Hello, " + name + "!";
     }
-    
+
     /**
      * Main method for testing
      */
     public static void main(String[] args) {
+        System.out.println("Calculator test running...");
         System.out.println("10 + 5 = " + add(10, 5));
         System.out.println("10 - 5 = " + subtract(10, 5));
         System.out.println("10 * 5 = " + multiply(10, 5));
